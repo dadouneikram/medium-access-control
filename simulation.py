@@ -2,7 +2,7 @@ import random
 import numpy as np
 
 class Station:
-    def init(self, id, K):
+    def __init__(self, id, K):
         self.id = id
         self.K = K              
         self.file = 0          
@@ -35,42 +35,6 @@ def simuler(N, K, lambd, tau, temps_max):
     historique_debit = []
 
     while t < temps_max:
-     
-        stations_pretes = [s for s in stations if s.file > 0 and s.prochaine_tentative is not None]
-        
-        if not stations_pretes:
-            
-            t = min(prochaines_arrivees)
-           
-            continue
-
-        
-        s_prioritaire = min(stations_pretes, key=lambda s: s.prochaine_tentative)
-        t_debut = s_prioritaire.prochaine_tentative
-        t_fin = t_debut + 1  
-        
-        
-        en_conflit = [s for s in stations_pretes if s.prochaine_tentative < t_fin]
-
-        if len(en_conflit) == 1:
-          
-            t = t_fin 
-            s_prioritaire.paquets_reussis += 1
-            total_reussis += 1
-            s_prioritaire.file -= 1
-            s_prioritaire.etat = 1
-            
-            
-            if s_prioritaire.file > 0:
-                s_prioritaire.prochaine_tentative = t
-            else:
-                s_prioritaire.prochaine_tentative = None
-
-        else:
-            
-            t = t_fin 
-            for s in en_conflit:
-                s.etat += 1 
-                s.calculer_backoff(t, tau) 
+      t += 0.1 
         
     return total_reussis / t
