@@ -3,23 +3,23 @@
 
 Ce projet consiste à simuler un protocole de contrôle d'accès au support (MAC) basé sur l'algorithme d'évitement de collision **Exponential Backoff**.
 
-## 👥 Binôme
+## Binôme
 - **Dadoune** (Ikram)
 - **Debbihi** (Fatiha)
 
-## 📂 Structure du projet>J
+## Structure du projet>
 - `simulation.py` : Contient la logique du simulateur (classe Station et moteur de calcul).
 - `main.py` : Interface utilisateur réalisée avec **Streamlit**.
 - `requirements.txt` : Liste des bibliothèques nécessaires.
 
-## 🛠 Installation
+## Installation
 Pour installer les dépendances nécessaires, exécutez la commande suivante :
 ```bash
 pip install -r requirements.txt
 ```
 
 
-## 🛠 Lancement
+## Lancement
 
 Pour lancer l'interface interactive :
 
