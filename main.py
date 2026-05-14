@@ -266,7 +266,7 @@ $$d_{\text{théo}} = N \cdot \lambda \qquad \text{si } N\lambda < 1$$
 
 T_VALID = st.number_input(
     "Durée de simulation pour la validation (ut) — plus long = plus précis",
-    value=10000, min_value=2000, step=1000
+    value=100000, min_value=2000, step=1000
 )
 
 if st.button("✅ Lancer les 3 validations théoriques", type="primary"):
