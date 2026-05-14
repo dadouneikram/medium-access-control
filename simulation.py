@@ -2,7 +2,7 @@ import random
 import numpy as np
 from scipy import stats
 
-ETAT_MAX = 10  
+ETAT_MAX = 10  # Plafond pour éviter des backoffs astronomiques (2^10 * tau max)
 
 
 class Station:
@@ -93,6 +93,7 @@ def simuler(N, K, lambd, tau, temps_max, nb_snapshots=500, csma=False):
         else:
             # ALOHA pur : émission au moment prévu, sans écouter le canal
             t_debut_emission = t_voulu
+        # ─────────────────────────────────────────────────────────────────────
 
         t_fin_emission = t_debut_emission + 1
         canal_libre_a = t_fin_emission  # Canal occupé jusqu'à la fin de cette émission
@@ -111,6 +112,7 @@ def simuler(N, K, lambd, tau, temps_max, nb_snapshots=500, csma=False):
 
         t = t_fin_emission
 
+        # ── Détection des conflits ────────────────────────────────────────────
         # CORRECTION BUG 2 : la fenêtre de collision diffère entre ALOHA et CSMA.
         #
         # CSMA : toute station dont la tentative <= t_debut_emission a entendu
@@ -129,6 +131,7 @@ def simuler(N, K, lambd, tau, temps_max, nb_snapshots=500, csma=False):
                 if s.prochaine_tentative >= t_debut_emission
                 and s.prochaine_tentative < t_fin_emission
             ]
+        # ─────────────────────────────────────────────────────────────────────
 
         if len(en_conflit) == 1:
             s = en_conflit[0]

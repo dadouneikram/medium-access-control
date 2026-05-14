@@ -220,26 +220,220 @@ st.divider()
 # 5. VALIDATION THÉORIQUE
 # ══════════════════════════════════════════════════════════════════════════════
 st.header("5 — Validation théorique")
-st.markdown("""
-**Cas N = 1, K grand, λ < 1 :** une seule station, jamais de collision.
-Le débit théorique est $d = \\lambda$ (tous les paquets passent, régime stable).
-Ce cas est identique en ALOHA et en CSMA (pas de concurrent).
+
+st.markdown(r"""
+Trois cas permettent de comparer les résultats du simulateur à des valeurs
+calculables analytiquement. Les formules proviennent de la théorie des files d'attente.
+
+---
+
+### Cas A — File M/D/1 : débit théorique $d = \lambda$
+
+**Conditions :** $N = 1$, $K$ grand, $\lambda < 1$ (une seule station, aucune collision).
+
+Le système se réduit à une **file M/D/1** (arrivées Poisson, service déterministe de durée 1 ut).
+D'après la formule de **Pollaczek-Khinchine** avec variance nulle ($\sigma^2 = 0$) :
+
+$$d_{\text{théo}} = \lambda \qquad \text{(tous les paquets passent, file stable)}$$
+
+*Source : Wikipedia ["M/D/1 queue"](https://en.wikipedia.org/wiki/M/D/1_queue) —
+Pollaczek-Khinchine formula, $\sigma^2 = 0 \Rightarrow W_D = \frac{\rho}{2\mu(1-\rho)}$*
+
+---
+
+### Cas B — ALOHA = CSMA pour $N = 1$
+
+**Conditions :** $N = 1$, mode ALOHA vs CSMA.
+
+Sans concurrent, écouter le canal avant d'émettre ne change rien : les deux protocoles
+doivent produire **exactement le même débit** (à la variance de simulation près).
+
+$$d_{\text{ALOHA}}(1, K, \lambda, \tau) \approx d_{\text{CSMA}}(1, K, \lambda, \tau)$$
+
+---
+
+### Cas C — Charge légère : $d \approx N\lambda$ quand $\lambda \to 0$
+
+**Conditions :** $N$ quelconque, $\lambda$ très petit tel que $N\lambda \ll 1$.
+
+Quand le trafic est faible, les collisions sont quasi-inexistantes.
+Chaque station émet librement à son propre rythme $\lambda$ :
+
+$$d_{\text{théo}} = N \cdot \lambda \qquad \text{si } N\lambda < 1$$
+
+*Source : principe de superposition — chaque station se comporte comme une file M/D/1 indépendante.*
 """)
 
-if st.button("✅ Vérifier le cas N=1 (validation)"):
-    lambda_test = lambd
-    d_theorique = min(lambda_test, 1.0)
+T_VALID = st.number_input(
+    "Durée de simulation pour la validation (ut) — plus long = plus précis",
+    value=10000, min_value=2000, step=1000
+)
 
-    with st.spinner("Simulation N=1…"):
-        _, d_sim, _, _ = simuler(1, 50, lambda_test, tau, max(temps_max, 5000), csma=csma_mode)
+if st.button("✅ Lancer les 3 validations théoriques", type="primary"):
+
+    # Cas A : M/D/1, d = λ 
+    st.subheader("Cas A — M/D/1 : débit simulé vs $d_{\\text{théo}} = \\lambda$")
+
+    valeurs_lam = [0.1, 0.2, 0.3, 0.5, 0.7, 0.9]
+    rows_a = []
+    bar_a = st.progress(0, text="Cas A en cours…")
+    for idx, lam in enumerate(valeurs_lam):
+        _, d_sim, L_sim, _ = simuler(1, 50, lam, tau, T_VALID, csma=False)
+        d_theo = lam
+        ecart  = abs(d_sim - d_theo) / d_theo * 100
+        rows_a.append({
+            "λ": lam,
+            "d théorique = λ": round(d_theo, 4),
+            "d simulé":         round(d_sim,  4),
+            "Écart (%)":        round(ecart,  2),
+            "Statut":           "✓ OK" if ecart < 5 else "⚠ Écart"
+        })
+        bar_a.progress((idx + 1) / len(valeurs_lam), text=f"λ={lam} → d_sim={d_sim:.4f}")
+    bar_a.empty()
+
+    df_a = pd.DataFrame(rows_a).set_index("λ")
+    st.dataframe(
+        df_a.style
+            .map(lambda v: "color: green; font-weight: bold" if v == "✓ OK"
+                      else ("color: orange; font-weight: bold" if v == "⚠ Écart" else ""),
+                      subset=["Statut"])
+            .format({"d théorique = λ": "{:.4f}", "d simulé": "{:.4f}", "Écart (%)": "{:.2f}"}),
+        use_container_width=True
+    )
+    max_ecart_a = max(r["Écart (%)"] for r in rows_a)
+    if max_ecart_a < 5:
+        st.success(f"✔ Écart maximal = {max_ecart_a:.2f} % < 5 % — simulation cohérente avec la théorie M/D/1.")
+    else:
+        st.warning(f"⚠ Écart maximal = {max_ecart_a:.2f} % — augmenter la durée de simulation.")
+
+    st.caption(
+        "**Formule :** file M/D/1 (N=1, K=50≈∞, service déterministe 1 ut). "
+        "Pollaczek-Khinchine avec σ²=0 donne d = λ si λ < 1. "
+        "Source : [Wikipedia M/D/1 queue](https://en.wikipedia.org/wiki/M/D/1_queue)"
+    )
+
+    st.divider()
+
+    # Cas B : ALOHA = CSMA pour N=1 
+    st.subheader("Cas B — ALOHA = CSMA pour $N = 1$")
+
+    valeurs_lam_b = [0.1, 0.3, 0.5, 0.8]
+    rows_b = []
+    bar_b = st.progress(0, text="Cas B en cours…")
+    for idx, lam in enumerate(valeurs_lam_b):
+        _, da, _, _ = simuler(1, 50, lam, tau, T_VALID, csma=False)
+        _, dc, _, _ = simuler(1, 50, lam, tau, T_VALID, csma=True)
+        diff = abs(da - dc)
+        rows_b.append({
+            "λ": lam,
+            "d ALOHA":  round(da,   4),
+            "d CSMA":   round(dc,   4),
+            "|diff|":   round(diff, 4),
+            "Statut":   "✓ OK" if diff < 0.02 else "⚠ Diff"
+        })
+        bar_b.progress((idx + 1) / len(valeurs_lam_b),
+                       text=f"λ={lam} → ALOHA={da:.4f}, CSMA={dc:.4f}")
+    bar_b.empty()
+
+    df_b = pd.DataFrame(rows_b).set_index("λ")
+    st.dataframe(
+        df_b.style
+            .map(lambda v: "color: green; font-weight: bold" if v == "✓ OK"
+                      else ("color: orange; font-weight: bold" if v == "⚠ Diff" else ""),
+                      subset=["Statut"])
+            .format({"d ALOHA": "{:.4f}", "d CSMA": "{:.4f}", "|diff|": "{:.4f}"}),
+        use_container_width=True
+    )
+    max_diff_b = max(r["|diff|"] for r in rows_b)
+    if max_diff_b < 0.02:
+        st.success(f"✔ Différence maximale = {max_diff_b:.4f} ≈ 0 — pas de biais systématique entre ALOHA et CSMA pour N=1.")
+    else:
+        st.warning(f"⚠ Différence = {max_diff_b:.4f} — vérifier l'implémentation CSMA.")
+
+    st.caption(
+        "**Raisonnement :** sans concurrent, écouter le canal est sans effet. "
+        "Les deux modes doivent converger vers le même débit λ. "
+        "Les petites différences sont dues à la variance statistique (seeds différents)."
+    )
+
+    st.divider()
+
+    # Cas C : charge légère, d ≈ N·λ
+    st.subheader("Cas C — Charge légère : $d \\approx N \\cdot \\lambda$")
+
+    configs_c = [(2, 0.05), (5, 0.02), (10, 0.01), (20, 0.005), (3, 0.10)]
+    rows_c = []
+    bar_c = st.progress(0, text="Cas C en cours…")
+    for idx, (n, lam) in enumerate(configs_c):
+        _, d_sim, _, _ = simuler(n, 20, lam, tau, T_VALID, csma=csma_mode)
+        d_theo = n * lam
+        ecart  = abs(d_sim - d_theo) / d_theo * 100
+        rows_c.append({
+            "N": n,
+            "λ": lam,
+            "N·λ (théo)": round(d_theo, 4),
+            "d simulé":   round(d_sim,  4),
+            "Écart (%)":  round(ecart,  2),
+            "Statut":     "✓ OK" if ecart < 8 else "⚠ Écart"
+        })
+        bar_c.progress((idx + 1) / len(configs_c),
+                       text=f"N={n}, λ={lam} → d_sim={d_sim:.4f}, théo={d_theo:.4f}")
+    bar_c.empty()
+
+    df_c = pd.DataFrame(rows_c).set_index("N")
+    st.dataframe(
+        df_c.style
+            .map(lambda v: "color: green; font-weight: bold" if v == "✓ OK"
+                      else ("color: orange; font-weight: bold" if v == "⚠ Écart" else ""),
+                      subset=["Statut"])
+            .format({"λ": "{:.3f}", "N·λ (théo)": "{:.4f}",
+                     "d simulé": "{:.4f}", "Écart (%)": "{:.2f}"}),
+        use_container_width=True
+    )
+    max_ecart_c = max(r["Écart (%)"] for r in rows_c)
+    if max_ecart_c < 8:
+        st.success(f"✔ Écart maximal = {max_ecart_c:.2f} % — débit converge bien vers N·λ en charge légère.")
+    else:
+        st.warning(f"⚠ Écart maximal = {max_ecart_c:.2f} % — augmenter la durée de simulation.")
+
+    st.caption(
+        "**Raisonnement :** quand N·λ ≪ 1, les collisions sont rares et chaque station "
+        "contribue λ au débit total → d ≈ N·λ (principe de superposition des files légèrement chargées). "
+        "Source : [Wikipedia M/G/1 queue](https://en.wikipedia.org/wiki/M/G/1_queue)"
+    )
+
+    st.divider()
+
+    st.subheader("📋 Récapitulatif de la validation")
+
+    ok_a = max(r["Écart (%)"] for r in rows_a) < 5
+    ok_b = max(r["|diff|"]   for r in rows_b) < 0.02
+    ok_c = max(r["Écart (%)"] for r in rows_c) < 8
 
     col1, col2, col3 = st.columns(3)
-    col1.metric("λ utilisé",       f"{lambda_test:.3f}")
-    col2.metric("Débit théorique", f"{d_theorique:.4f}")
-    col3.metric("Débit simulé",    f"{d_sim:.4f}")
+    col1.metric("Cas A — M/D/1 (d=λ)",
+                f"Écart max {max(r['Écart (%)'] for r in rows_a):.2f}%",
+                delta="✓ Validé" if ok_a else "⚠ À revoir")
+    col2.metric("Cas B — ALOHA=CSMA (N=1)",
+                f"Diff max {max(r['|diff|'] for r in rows_b):.4f}",
+                delta="✓ Validé" if ok_b else "⚠ À revoir")
+    col3.metric("Cas C — Charge légère (d≈Nλ)",
+                f"Écart max {max(r['Écart (%)'] for r in rows_c):.2f}%",
+                delta="✓ Validé" if ok_c else "⚠ À revoir")
 
-    erreur = abs(d_sim - d_theorique) / d_theorique * 100
-    if erreur < 5:
-        st.success(f"✔ Écart relatif = {erreur:.2f} % — simulation cohérente avec la théorie.")
+    if ok_a and ok_b and ok_c:
+        st.success(
+            "✅ Les trois validations théoriques sont concluantes. "
+            "Le simulateur est cohérent avec la théorie des files d'attente "
+            "(M/D/1, Pollaczek-Khinchine) sur tous les cas testables analytiquement."
+        )
     else:
-        st.warning(f"⚠ Écart relatif = {erreur:.2f} % — augmenter temps_max pour plus de précision.")
+        st.warning("Certaines validations présentent des écarts. Augmenter la durée de simulation.")
+
+    st.markdown("""
+    **Sources utilisées pour la validation :**
+    - Wikipedia, *M/D/1 queue* : https://en.wikipedia.org/wiki/M/D/1_queue
+    - Wikipedia, *Pollaczek–Khinchine formula* : https://en.wikipedia.org/wiki/Pollaczek%E2%80%93Khinchine_formula
+    - Wikipedia, *M/G/1 queue* : https://en.wikipedia.org/wiki/M/G/1_queue
+    - Sztrik J., *Basic Queueing Theory*, Univ. Debrecen, 2021 : https://irh.inf.unideb.hu/~jsztrik/education/16/SOR_Main_Angol.pdf
+    """)
