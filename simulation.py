@@ -131,7 +131,6 @@ def simuler(N, K, lambd, tau, temps_max, nb_snapshots=500, csma=False):
                 if s.prochaine_tentative >= t_debut_emission
                 and s.prochaine_tentative < t_fin_emission
             ]
-        # ─────────────────────────────────────────────────────────────────────
 
         if len(en_conflit) == 1:
             s = en_conflit[0]
@@ -162,7 +161,7 @@ def simuler(N, K, lambd, tau, temps_max, nb_snapshots=500, csma=False):
 
     return historique, debit_final, nb_moyen_clients, taux_perte
 
-
+#monte-carlo => ON FAIT PLUSIEURS SIMULATIONS POUR AVOIR UNE ESTIMATION PLUS FIABLE DU DÉBIT MOYEN
 def simuler_multiple(N, K, lambd, tau, temps_max, nb_runs=15, csma=False):
     debits = []
     for _ in range(nb_runs):
@@ -171,11 +170,13 @@ def simuler_multiple(N, K, lambd, tau, temps_max, nb_runs=15, csma=False):
 
     moyenne = np.mean(debits)
     if len(debits) > 1:
+        #(la Loi de Student) et pas la loi Normale ?=>psq on a un petit échantillon de données (15 runs, c'est $< 30$)
+        #et on ne connaît pas l'écart-type réel
         ic = stats.t.interval(
             0.95,
             df=len(debits) - 1,
             loc=moyenne,
-            scale=stats.sem(debits)
+            scale=stats.sem(debits) #l'écart-type de l'échantillon divisé par la racine carrée du nombre de runs
         )
         demi_ic = (ic[1] - ic[0]) / 2
     else:

@@ -261,11 +261,11 @@ Chaque station émet librement à son propre rythme $\lambda$ :
 
 $$d_{\text{théo}} = N \cdot \lambda \qquad \text{si } N\lambda < 1$$
 
-*Source : principe de superposition — chaque station se comporte comme une file M/D/1 indépendante.*
+*Source : principe de superposition : chaque station se comporte comme une file M/D/1 indépendante.*
 """)
 
 T_VALID = st.number_input(
-    "Durée de simulation pour la validation (ut) — plus long = plus précis",
+    "Durée de simulation pour la validation (ut)",
     value=100000, min_value=2000, step=1000
 )
 
@@ -306,11 +306,7 @@ if st.button("✅ Lancer les 3 validations théoriques", type="primary"):
     else:
         st.warning(f"⚠ Écart maximal = {max_ecart_a:.2f} % — augmenter la durée de simulation.")
 
-    st.caption(
-        "**Formule :** file M/D/1 (N=1, K=50≈∞, service déterministe 1 ut). "
-        "Pollaczek-Khinchine avec σ²=0 donne d = λ si λ < 1. "
-        "Source : [Wikipedia M/D/1 queue](https://en.wikipedia.org/wiki/M/D/1_queue)"
-    )
+    
 
     st.divider()
 
@@ -350,11 +346,6 @@ if st.button("✅ Lancer les 3 validations théoriques", type="primary"):
     else:
         st.warning(f"⚠ Différence = {max_diff_b:.4f} — vérifier l'implémentation CSMA.")
 
-    st.caption(
-        "**Raisonnement :** sans concurrent, écouter le canal est sans effet. "
-        "Les deux modes doivent converger vers le même débit λ. "
-        "Les petites différences sont dues à la variance statistique (seeds différents)."
-    )
 
     st.divider()
 
@@ -396,11 +387,6 @@ if st.button("✅ Lancer les 3 validations théoriques", type="primary"):
     else:
         st.warning(f"⚠ Écart maximal = {max_ecart_c:.2f} % — augmenter la durée de simulation.")
 
-    st.caption(
-        "**Raisonnement :** quand N·λ ≪ 1, les collisions sont rares et chaque station "
-        "contribue λ au débit total → d ≈ N·λ (principe de superposition des files légèrement chargées). "
-        "Source : [Wikipedia M/G/1 queue](https://en.wikipedia.org/wiki/M/G/1_queue)"
-    )
 
     st.divider()
 
@@ -425,7 +411,7 @@ if st.button("✅ Lancer les 3 validations théoriques", type="primary"):
         st.success(
             "✅ Les trois validations théoriques sont concluantes. "
             "Le simulateur est cohérent avec la théorie des files d'attente "
-            "(M/D/1, Pollaczek-Khinchine) sur tous les cas testables analytiquement."
+            "sur tous les cas testables analytiquement."
         )
     else:
         st.warning("Certaines validations présentent des écarts. Augmenter la durée de simulation.")
