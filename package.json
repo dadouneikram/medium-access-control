@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "scipy": "^0.1.4",
+    "stats": "^1.0.0"
+  }
+}
