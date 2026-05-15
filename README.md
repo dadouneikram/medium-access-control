@@ -1,4 +1,4 @@
-# 📡 Simulateur MAC (Exponential Backoff)
+# Simulateur MAC (Exponential Backoff)
 
 **Projet de Simulation: Medium Access Control**  
 **Auteurs :** Dadoune Ikram & Debbihi Fatiha  
