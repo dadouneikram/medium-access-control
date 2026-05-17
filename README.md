@@ -16,7 +16,9 @@ Ce simulateur modélise un réseau de **N stations** partageant un canal unique 
 - la détermination du N optimal avec intervalle de confiance à 95 % ;
 - la comparaison entre deux modes d'accès : **ALOHA pur** et **CSMA 1-persistant** ;
 - la validation par rapport à des résultats théoriques issus de la théorie des files d'attente.
-
+- Pour tester le protocole CSMA, vous devez activer l'option dans le sidebar => 
+  
+![Activation du mode CSMA](image.png)
 ---
 
 ## Structure du projet
@@ -135,7 +137,7 @@ Trois cas permettent de confronter le simulateur à la théorie :
 
 | Cas | Conditions | Attendu théorique |
 |---|---|---|
-| **A** — M/D/1 | N=1, K grand, λ < 1 | d = λ (Pollaczek-Khinchine) |
+| **A** — M/D/1 | N=1, K grand, λ < 1 | d = λ |
 | **B** — ALOHA = CSMA | N=1 | d_ALOHA ≈ d_CSMA |
 | **C** — Charge légère | Nλ ≪ 1 | d ≈ N·λ |
 
@@ -153,6 +155,3 @@ Pour l'estimation du N optimal (section 4), on utilise la **méthode de Monte-Ca
 ## Références
 
 - Wikipedia, *M/D/1 queue* : https://en.wikipedia.org/wiki/M/D/1_queue  
-- Wikipedia, *Pollaczek–Khinchine formula* : https://en.wikipedia.org/wiki/Pollaczek%E2%80%93Khinchine_formula  
-- Wikipedia, *M/G/1 queue* : https://en.wikipedia.org/wiki/M/G/1_queue  
-- Sztrik J., *Basic Queueing Theory*, Université de Debrecen, 2021

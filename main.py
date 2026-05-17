@@ -12,13 +12,12 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("📡 Simulateur MAC — Exponential Backoff")
+st.title("📡 Simulateur MAC : Exponential Backoff")
 st.markdown("""
 Simulation d'un réseau de $N$ stations partageant un canal unique avec
 l'algorithme de **repli exponentiel** (Ethernet / 802.11).
 """)
 
-# ── Barre latérale ────────────────────────────────────────────────────────────
 st.sidebar.header("⚙️ Paramètres")
 N         = st.sidebar.slider("Nombre de stations (N)", 1, 100, 10)
 K         = st.sidebar.slider("Capacité des files (K)", 1, 50, 10)
@@ -43,10 +42,9 @@ nb_pts_lambda = st.sidebar.slider("Points pour courbe en λ", 5, 30, 15)
 n_max_etude   = st.sidebar.slider("N max pour courbe en N", 5, 80, 40)
 nb_runs_ic    = st.sidebar.slider("Réplications pour IC 95%", 5, 30, 10)
 
-# ══════════════════════════════════════════════════════════════════════════════
-# 1. SIMULATION UNIQUE — courbes temporelles
-# ══════════════════════════════════════════════════════════════════════════════
-st.header(f"1 — Évolution temporelle [{mode_label}]")
+# 1 => courbes temporelles
+
+st.header(f"1 : Évolution temporelle [{mode_label}]")
 
 if st.button("▶ Lancer la simulation", type="primary"):
     with st.spinner("Simulation en cours…"):
@@ -73,10 +71,8 @@ if st.button("▶ Lancer la simulation", type="primary"):
 
 st.divider()
 
-# ══════════════════════════════════════════════════════════════════════════════
 # 2. COURBE d en fonction de λ
-# ══════════════════════════════════════════════════════════════════════════════
-st.header(f"2 — Débit en fonction de λ  [{mode_label}, N={N} fixé]")
+st.header(f"2 : Débit en fonction de λ  [{mode_label}, N={N} fixé]")
 
 if st.button("📈 Tracer d en fonction de λ"):
     valeurs_lambda = np.linspace(0.05, 2.0, nb_pts_lambda)
@@ -108,10 +104,8 @@ if st.button("📈 Tracer d en fonction de λ"):
 
 st.divider()
 
-# ══════════════════════════════════════════════════════════════════════════════
 # 3. COURBE d en fonction de N
-# ══════════════════════════════════════════════════════════════════════════════
-st.header(f"3 — Débit en fonction de N  [{mode_label}, λ={lambd} fixé]")
+st.header(f"3 : Débit en fonction de N  [{mode_label}, λ={lambd} fixé]")
 
 compare_csma = st.checkbox("Afficher aussi la courbe de l'autre mode pour comparaison", value=True)
 
@@ -159,10 +153,9 @@ if st.button("📈 Tracer d en fonction de N"):
 
 st.divider()
 
-# ══════════════════════════════════════════════════════════════════════════════
 # 4. N OPTIMAL AVEC IC 95%
-# ══════════════════════════════════════════════════════════════════════════════
-st.header(f"4 — N optimal avec intervalle de confiance à 95 % [{mode_label}]")
+
+st.header(f"4 : N optimal avec intervalle de confiance à 95 % [{mode_label}]")
 st.markdown(f"""
 Pour chaque valeur de N, on lance **{nb_runs_ic} réplications** indépendantes
 et on calcule la moyenne du débit ainsi que son intervalle de confiance Student à 95 %.
@@ -206,7 +199,7 @@ if st.button(f"🔬 Calculer N optimal (IC 95%, {nb_runs_ic} runs par N)"):
     ic_opt  = demi_ics[idx_opt]
 
     st.success(
-        f"**N optimal [{mode_label}] = {n_opt}** — débit moyen = **{d_opt:.4f} ± {ic_opt:.4f}** pqt/ut "
+        f"**N optimal [{mode_label}] = {n_opt}** : débit moyen = **{d_opt:.4f} ± {ic_opt:.4f}** pqt/ut "
         f"(IC 95%, {nb_runs_ic} réplications)"
     )
 
@@ -216,10 +209,9 @@ if st.button(f"🔬 Calculer N optimal (IC 95%, {nb_runs_ic} runs par N)"):
 
 st.divider()
 
-# ══════════════════════════════════════════════════════════════════════════════
 # 5. VALIDATION THÉORIQUE
-# ══════════════════════════════════════════════════════════════════════════════
-st.header("5 — Validation théorique")
+
+st.header("5 : Validation théorique")
 
 st.markdown(r"""
 Trois cas permettent de comparer les résultats du simulateur à des valeurs
@@ -227,21 +219,18 @@ calculables analytiquement. Les formules proviennent de la théorie des files d'
 
 ---
 
-### Cas A — File M/D/1 : débit théorique $d = \lambda$
+### Cas A : File M/D/1 : débit théorique $d = \lambda$
 
 **Conditions :** $N = 1$, $K$ grand, $\lambda < 1$ (une seule station, aucune collision).
 
 Le système se réduit à une **file M/D/1** (arrivées Poisson, service déterministe de durée 1 ut).
-D'après la formule de **Pollaczek-Khinchine** avec variance nulle ($\sigma^2 = 0$) :
 
 $$d_{\text{théo}} = \lambda \qquad \text{(tous les paquets passent, file stable)}$$
 
-*Source : Wikipedia ["M/D/1 queue"](https://en.wikipedia.org/wiki/M/D/1_queue) —
-Pollaczek-Khinchine formula, $\sigma^2 = 0 \Rightarrow W_D = \frac{\rho}{2\mu(1-\rho)}$*
 
 ---
 
-### Cas B — ALOHA = CSMA pour $N = 1$
+### Cas B : ALOHA = CSMA pour $N = 1$
 
 **Conditions :** $N = 1$, mode ALOHA vs CSMA.
 
@@ -252,7 +241,7 @@ $$d_{\text{ALOHA}}(1, K, \lambda, \tau) \approx d_{\text{CSMA}}(1, K, \lambda, \
 
 ---
 
-### Cas C — Charge légère : $d \approx N\lambda$ quand $\lambda \to 0$
+### Cas C : Charge légère : $d \approx N\lambda$ quand $\lambda \to 0$
 
 **Conditions :** $N$ quelconque, $\lambda$ très petit tel que $N\lambda \ll 1$.
 
@@ -260,8 +249,10 @@ Quand le trafic est faible, les collisions sont quasi-inexistantes.
 Chaque station émet librement à son propre rythme $\lambda$ :
 
 $$d_{\text{théo}} = N \cdot \lambda \qquad \text{si } N\lambda < 1$$
+    
+*Source : Wikipedia ["M/D/1 queue"](https://en.wikipedia.org/wiki/M/D/1_queue) 
 
-*Source : principe de superposition : chaque station se comporte comme une file M/D/1 indépendante.*
+
 """)
 
 T_VALID = st.number_input(
@@ -272,7 +263,7 @@ T_VALID = st.number_input(
 if st.button("✅ Lancer les 3 validations théoriques", type="primary"):
 
     # Cas A : M/D/1, d = λ 
-    st.subheader("Cas A — M/D/1 : débit simulé vs $d_{\\text{théo}} = \\lambda$")
+    st.subheader("Cas A : M/D/1 : débit simulé vs $d_{\\text{théo}} = \\lambda$")
 
     valeurs_lam = [0.1, 0.2, 0.3, 0.5, 0.7, 0.9]
     rows_a = []
@@ -302,16 +293,16 @@ if st.button("✅ Lancer les 3 validations théoriques", type="primary"):
     )
     max_ecart_a = max(r["Écart (%)"] for r in rows_a)
     if max_ecart_a < 5:
-        st.success(f"✔ Écart maximal = {max_ecart_a:.2f} % < 5 % — simulation cohérente avec la théorie M/D/1.")
+        st.success(f"✔ Écart maximal = {max_ecart_a:.2f} % < 5 % : simulation cohérente avec la théorie M/D/1.")
     else:
-        st.warning(f"⚠ Écart maximal = {max_ecart_a:.2f} % — augmenter la durée de simulation.")
+        st.warning(f"⚠ Écart maximal = {max_ecart_a:.2f} % : augmenter la durée de simulation.")
 
     
 
     st.divider()
 
     # Cas B : ALOHA = CSMA pour N=1 
-    st.subheader("Cas B — ALOHA = CSMA pour $N = 1$")
+    st.subheader("Cas B : ALOHA = CSMA pour $N = 1$")
 
     valeurs_lam_b = [0.1, 0.3, 0.5, 0.8]
     rows_b = []
@@ -342,15 +333,15 @@ if st.button("✅ Lancer les 3 validations théoriques", type="primary"):
     )
     max_diff_b = max(r["|diff|"] for r in rows_b)
     if max_diff_b < 0.02:
-        st.success(f"✔ Différence maximale = {max_diff_b:.4f} ≈ 0 — pas de biais systématique entre ALOHA et CSMA pour N=1.")
+        st.success(f"✔ Différence maximale = {max_diff_b:.4f} ≈ 0 : pas de biais systématique entre ALOHA et CSMA pour N=1.")
     else:
-        st.warning(f"⚠ Différence = {max_diff_b:.4f} — vérifier l'implémentation CSMA.")
+        st.warning(f"⚠ Différence = {max_diff_b:.4f} : vérifier l'implémentation CSMA.")
 
 
     st.divider()
 
     # Cas C : charge légère, d ≈ N·λ
-    st.subheader("Cas C — Charge légère : $d \\approx N \\cdot \\lambda$")
+    st.subheader("Cas C : Charge légère : $d \\approx N \\cdot \\lambda$")
 
     configs_c = [(2, 0.05), (5, 0.02), (10, 0.01), (20, 0.005), (3, 0.10)]
     rows_c = []
@@ -383,9 +374,9 @@ if st.button("✅ Lancer les 3 validations théoriques", type="primary"):
     )
     max_ecart_c = max(r["Écart (%)"] for r in rows_c)
     if max_ecart_c < 8:
-        st.success(f"✔ Écart maximal = {max_ecart_c:.2f} % — débit converge bien vers N·λ en charge légère.")
+        st.success(f"✔ Écart maximal = {max_ecart_c:.2f} % : débit converge bien vers N·λ en charge légère.")
     else:
-        st.warning(f"⚠ Écart maximal = {max_ecart_c:.2f} % — augmenter la durée de simulation.")
+        st.warning(f"⚠ Écart maximal = {max_ecart_c:.2f} % : augmenter la durée de simulation.")
 
 
     st.divider()
@@ -397,13 +388,13 @@ if st.button("✅ Lancer les 3 validations théoriques", type="primary"):
     ok_c = max(r["Écart (%)"] for r in rows_c) < 8
 
     col1, col2, col3 = st.columns(3)
-    col1.metric("Cas A — M/D/1 (d=λ)",
+    col1.metric("Cas A : M/D/1 (d=λ)",
                 f"Écart max {max(r['Écart (%)'] for r in rows_a):.2f}%",
                 delta="✓ Validé" if ok_a else "⚠ À revoir")
-    col2.metric("Cas B — ALOHA=CSMA (N=1)",
+    col2.metric("Cas B : ALOHA=CSMA (N=1)",
                 f"Diff max {max(r['|diff|'] for r in rows_b):.4f}",
                 delta="✓ Validé" if ok_b else "⚠ À revoir")
-    col3.metric("Cas C — Charge légère (d≈Nλ)",
+    col3.metric("Cas C : Charge légère (d≈Nλ)",
                 f"Écart max {max(r['Écart (%)'] for r in rows_c):.2f}%",
                 delta="✓ Validé" if ok_c else "⚠ À revoir")
 
@@ -419,7 +410,4 @@ if st.button("✅ Lancer les 3 validations théoriques", type="primary"):
     st.markdown("""
     **Sources utilisées pour la validation :**
     - Wikipedia, *M/D/1 queue* : https://en.wikipedia.org/wiki/M/D/1_queue
-    - Wikipedia, *Pollaczek–Khinchine formula* : https://en.wikipedia.org/wiki/Pollaczek%E2%80%93Khinchine_formula
-    - Wikipedia, *M/G/1 queue* : https://en.wikipedia.org/wiki/M/G/1_queue
-    - Sztrik J., *Basic Queueing Theory*, Univ. Debrecen, 2021 : https://irh.inf.unideb.hu/~jsztrik/education/16/SOR_Main_Angol.pdf
     """)

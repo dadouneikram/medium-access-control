@@ -41,7 +41,7 @@ def simuler(N, K, lambd, tau, temps_max, nb_snapshots=500, csma=False):
     total_reussis = 0
     total_perdus_file = 0
     somme_clients_temps = 0.0
-    canal_libre_a = 0.0  # Instant auquel le canal redevient disponible
+    canal_libre_a = 0.0  # Instant auquel le canal redevient dispo
 
     historique = []
     intervalle_snapshot = temps_max / nb_snapshots
@@ -80,18 +80,15 @@ def simuler(N, K, lambd, tau, temps_max, nb_snapshots=500, csma=False):
         s_prioritaire = min(stations_pretes, key=lambda s: s.prochaine_tentative)
         t_voulu = s_prioritaire.prochaine_tentative
 
-        # ── CSMA (Carrier Sense Multiple Access) ─────────────────────────────
+        # CSMA (Carrier Sense Multiple Access)
         # La station écoute le canal avant d'émettre.
         # Si le canal est occupé au moment t_voulu, elle attend sa libération
-        # et émet dès qu'il devient libre (CSMA 1-persistant).
-        #
-        # CORRECTION BUG 1 : on NE modifie PAS prochaine_tentative ici.
-        # On calcule uniquement t_debut_emission. Sans cette correction,
-        # prochaine_tentative est sans cesse repoussée et le débit CSMA tend vers 0.
+        # et émet dès qu'il devient libre
+
         if csma:
             t_debut_emission = max(t_voulu, canal_libre_a)
         else:
-            # ALOHA pur : émission au moment prévu, sans écouter le canal
+            # ALOHA : émission au moment prévu, sans écouter le canal
             t_debut_emission = t_voulu
         # ─────────────────────────────────────────────────────────────────────
 
@@ -112,12 +109,10 @@ def simuler(N, K, lambd, tau, temps_max, nb_snapshots=500, csma=False):
 
         t = t_fin_emission
 
-        # ── Détection des conflits ────────────────────────────────────────────
-        # CORRECTION BUG 2 : la fenêtre de collision diffère entre ALOHA et CSMA.
-        #
+        # Détection des conflits 
+
         # CSMA : toute station dont la tentative <= t_debut_emission a entendu
-        #        le canal libre au même instant et va émettre simultanément => conflit.
-        #        (propagation supposée instantanée : fenêtre de vulnérabilité nulle)
+        #    le canal libre au même instant et va émettre simultanément => conflit.
         #
         # ALOHA : conflit si la tentative tombe dans la fenêtre [t_debut, t_fin).
         if csma:
@@ -170,13 +165,12 @@ def simuler_multiple(N, K, lambd, tau, temps_max, nb_runs=15, csma=False):
 
     moyenne = np.mean(debits)
     if len(debits) > 1:
-        #(la Loi de Student) et pas la loi Normale ?=>psq on a un petit échantillon de données (15 runs, c'est $< 30$)
-        #et on ne connaît pas l'écart-type réel
+        #(la Loi de Student) et pas la loi Normale ?=>psq on a un petit échantillon de données (15 runs)
         ic = stats.t.interval(
             0.95,
             df=len(debits) - 1,
             loc=moyenne,
-            scale=stats.sem(debits) #l'écart-type de l'échantillon divisé par la racine carrée du nombre de runs
+            scale=stats.sem(debits) 
         )
         demi_ic = (ic[1] - ic[0]) / 2
     else:
